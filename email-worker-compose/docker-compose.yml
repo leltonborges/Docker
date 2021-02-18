@@ -11,3 +11,9 @@ services:
     environment:
       POSTGRES_PASSWORD: 'password'
       POSTGRES_USER: 'postgres'
+  frontend:
+    image: nginx:1.13
+    volumes:
+      - ./web:/usr/share/nginx/html
+    ports:
+      - 4001:80
