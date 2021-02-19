@@ -1,23 +1,36 @@
 version: '3'
 volumes:
   dados: 
+networks: 
+  net-banco:
+  net-web:
 services:
   db_project:
     image: postgres:9.6
     volumes:
       - dados:/var/lib/postgresql/data
+      # Script
       - ./scripts:/scripts
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: 
+      - net-banco
     environment:
       POSTGRES_PASSWORD: 'password'
       POSTGRES_USER: 'postgres'
-  
+    
   frontend:
     image: nginx:1.13
     volumes:
-      - ./web:/usr/share/nginx/html
+      # Site
+      - ./web:/usr/share/nginx/html/
+      # Configuração do proxy reverso
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - 4001:80
+      - 80:80
+    networks:
+      - net-web
+    depends_on:
+      - app
 
   app:
     image: python:3.6
@@ -25,6 +38,8 @@ services:
       - ./app:/app
     working_dir: /app
     command: bash ./app.sh
-    ports:
-      - 8081:8080
-  
+    networks: 
+      - net-banco
+      - net-web
+    depends_on: 
+      - db_project
